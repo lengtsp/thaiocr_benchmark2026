@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+
+# Raw OCR evidence remains on the benchmark host. Commit the reviewed Markdown
+# reports, not model responses that may contain source-document content.
+results/*.json
+results/*.score.json
+dashboard/assets/

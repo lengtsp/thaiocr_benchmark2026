@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NCB Best Result Comparison</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #17212b;
+        --muted: #60717e;
+        --canvas: #edf2f3;
+        --paper: #ffffff;
+        --line: #cdd8de;
+        --navy: #173a5e;
+        --teal: #08796a;
+        --teal-soft: #e0f1ed;
+        --coral: #b8423d;
+        --coral-soft: #fde9e7;
+        --amber: #936000;
+        --amber-soft: #fff1cd;
+        --blue: #1d6985;
+        --blue-soft: #e0f0f5;
+        --shadow: 0 12px 30px rgba(17, 41, 57, 0.09);
+      }
+
+      * { box-sizing: border-box; }
+      html, body { min-width: 320px; min-height: 100%; }
+      body {
+        margin: 0;
+        background: var(--canvas);
+        color: var(--ink);
+        font: 15px/1.5 "Noto Sans Thai", "Leelawadee UI", Tahoma, Arial, sans-serif;
+      }
+      button, select { font: inherit; }
+      button { cursor: pointer; }
+      h1, h2, p { margin: 0; }
+
+      .shell { width: min(100%, 2050px); margin: 0 auto; padding: 22px clamp(16px, 2.5vw, 38px) 34px; }
+      .topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 15px; }
+      .eyebrow { margin-bottom: 4px; color: var(--teal); font-size: 12px; font-weight: 760; letter-spacing: 0; text-transform: uppercase; }
+      h1 { color: var(--navy); font-size: 27px; font-weight: 760; letter-spacing: 0; line-height: 1.2; }
+      .subhead { margin-top: 5px; color: var(--muted); font-size: 13px; }
+      .controls { display: flex; align-items: center; gap: 7px; flex: 0 0 auto; }
+
+      .icon-button, .input-thumb, .notebook-link {
+        position: relative;
+        border: 1px solid #b5c6d0;
+        background: var(--paper);
+        color: var(--navy);
+      }
+      .icon-button { display: grid; width: 38px; height: 38px; place-items: center; padding: 0; border-radius: 6px; }
+      .icon-button svg { width: 18px; height: 18px; }
+      .icon-button:disabled { color: #a8b5bc; cursor: not-allowed; }
+      .icon-button:hover:not(:disabled), .icon-button:focus-visible,
+      .input-thumb:hover, .input-thumb:focus-visible,
+      .notebook-link:hover, .notebook-link:focus-visible {
+        border-color: var(--teal);
+        background: var(--teal-soft);
+        outline: 2px solid var(--teal);
+        outline-offset: 2px;
+      }
+      [data-tooltip]::after {
+        position: absolute;
+        z-index: 10;
+        top: calc(100% + 7px);
+        right: 0;
+        max-width: 240px;
+        width: max-content;
+        padding: 5px 7px;
+        border-radius: 4px;
+        background: var(--ink);
+        color: #fff;
+        content: attr(data-tooltip);
+        font-size: 12px;
+        font-weight: 650;
+        opacity: 0;
+        pointer-events: none;
+      }
+      [data-tooltip]:hover::after, [data-tooltip]:focus-visible::after { opacity: 1; }
+      .page-select { height: 38px; min-width: 134px; padding: 0 28px 0 10px; border: 1px solid #b5c6d0; border-radius: 6px; background: var(--paper); color: var(--navy); font-weight: 740; }
+
+      .best-summary { margin-bottom: 15px; overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); box-shadow: var(--shadow); }
+      .best-table { width: 100%; min-width: 1540px; border-collapse: collapse; font-size: 13px; }
+      .best-table th, .best-table td { padding: 9px 11px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+      .best-table tr:last-child td { border-bottom: 0; }
+      .best-table th { background: #f7fafb; color: var(--navy); font-weight: 760; white-space: nowrap; }
+      .best-table .score { color: var(--teal); font-weight: 760; white-space: nowrap; }
+      .best-table .numbers { white-space: nowrap; }
+
+      .comparison-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); box-shadow: var(--shadow); }
+      .comparison-grid { display: grid; grid-template-columns: repeat(5, minmax(318px, 1fr)); min-width: 1640px; }
+      .panel { min-width: 0; border-right: 1px solid var(--line); }
+      .panel:last-child { border-right: 0; }
+      .panel__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 9px; min-height: 128px; padding: 12px 13px; border-bottom: 1px solid var(--line); background: #f7fafb; }
+      .panel__title { color: var(--navy); font-size: 16px; font-weight: 760; line-height: 1.24; }
+      .panel__detail { margin-top: 3px; color: var(--muted); font-size: 12px; line-height: 1.3; }
+      .panel__score { margin-top: 7px; color: var(--teal); font-size: 13px; font-weight: 760; }
+      .panel__ledger { margin-top: 2px; color: var(--muted); font-size: 11px; }
+      .panel__actions { display: flex; align-items: flex-start; gap: 7px; flex: 0 0 auto; }
+      .notebook-link { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 5px; }
+      .notebook-link svg { width: 16px; height: 16px; }
+      .input-thumb { display: block; width: 50px; height: 66px; padding: 0; overflow: hidden; border-radius: 4px; }
+      .input-thumb img { display: block; width: 100%; height: 100%; object-fit: contain; }
+      .delta-badge { display: grid; min-width: 29px; height: 26px; place-items: center; border: 1px solid #b5c6d0; border-radius: 13px; background: var(--paper); color: var(--navy); font-size: 12px; font-weight: 760; }
+      .transcript { height: min(70vh, 760px); padding: 14px 14px 18px; overflow: auto; color: #1d2a34; font-size: 15px; line-height: 2.04; overflow-wrap: anywhere; }
+      .transcript--golden { background: #fbfdfc; }
+
+      .token { display: inline; margin: 0 1px 0 0; padding: 1px 2px; border: 0; border-radius: 2px; background: transparent; color: inherit; font: inherit; line-height: inherit; }
+      .token--substituted, .token--missing, .token--extra { cursor: pointer; }
+      .token--substituted { background: var(--coral-soft); box-shadow: inset 0 -2px 0 #d86a63; }
+      .token--missing { background: var(--amber-soft); box-shadow: inset 0 -2px 0 #d49a22; color: var(--amber); font-weight: 760; }
+      .token--extra { background: var(--blue-soft); box-shadow: inset 0 -2px 0 #5790a6; color: var(--blue); }
+      .token:focus-visible { outline: 2px solid var(--navy); outline-offset: 1px; }
+
+      dialog { width: min(430px, calc(100vw - 32px)); margin: auto; padding: 0; border: 1px solid #b5c6d0; border-radius: 6px; background: var(--paper); color: var(--ink); box-shadow: 0 24px 64px rgba(13, 25, 35, 0.28); }
+      dialog::backdrop { background: rgba(16, 31, 43, 0.48); }
+      .dialog__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 17px; border-bottom: 1px solid var(--line); }
+      .dialog__head h2 { color: var(--navy); font-size: 17px; }
+      .dialog__body { display: grid; gap: 10px; padding: 16px 17px 18px; }
+      .dialog__label { color: var(--muted); font-size: 12px; font-weight: 740; }
+      .dialog__value { overflow-wrap: anywhere; }
+      .image-dialog { width: auto; max-width: calc(100vw - 32px); }
+      .image-dialog img { display: block; max-width: min(94vw, 1500px); max-height: 84vh; }
+      .empty { padding: 36px; color: var(--muted); text-align: center; }
+
+      @media (max-width: 800px) {
+        .shell { padding: 15px 12px 24px; }
+        .topbar { flex-direction: column; align-items: stretch; }
+        .controls { justify-content: flex-end; }
+        h1 { font-size: 23px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">NCB Golden Audit</p>
+          <h1>ตาราง Best Result: ตรวจ OCR รายหน้า</h1>
+          <p class="subhead">Golden dataset และ configuration ที่ดีที่สุดหนึ่งชุดต่อโมเดล</p>
+        </div>
+        <div class="controls">
+          <button class="icon-button" id="previous-button" type="button" data-tooltip="หน้าก่อน" aria-label="หน้าก่อน"><i data-lucide="chevron-left" aria-hidden="true"></i></button>
+          <select class="page-select" id="page-select" aria-label="เลือกหน้า"></select>
+          <button class="icon-button" id="next-button" type="button" data-tooltip="หน้าถัดไป" aria-label="หน้าถัดไป"><i data-lucide="chevron-right" aria-hidden="true"></i></button>
+        </div>
+      </header>
+
+      <section class="best-summary" aria-label="ตารางผลที่ดีที่สุดของแต่ละโมเดล">
+        <table class="best-table">
+          <thead><tr><th>โมเดล</th><th>Input</th><th>px</th><th>MTP</th><th>ถูกตรง</th><th>แทนผิด</th><th>คำหาย</th><th>คำเกิน</th><th>Word</th><th>เลขไทย/ตัวเลข</th><th>เวลา/หน้า</th><th>VRAM peak</th></tr></thead>
+          <tbody id="best-summary-body"></tbody>
+        </table>
+      </section>
+
+      <section class="comparison-scroll" aria-live="polite">
+        <div class="comparison-grid" id="comparison-grid"></div>
+      </section>
+    </main>
+
+    <dialog id="token-dialog">
+      <div class="dialog__head"><h2 id="token-title"></h2><button class="icon-button" type="button" data-close-token data-tooltip="ปิด" aria-label="ปิด"><i data-lucide="x" aria-hidden="true"></i></button></div>
+      <div class="dialog__body" id="token-body"></div>
+    </dialog>
+    <dialog class="image-dialog" id="image-dialog">
+      <div class="dialog__head"><h2 id="image-title">ภาพ input</h2><button class="icon-button" type="button" data-close-image data-tooltip="ปิด" aria-label="ปิด"><i data-lucide="x" aria-hidden="true"></i></button></div>
+      <img id="full-image" alt="ภาพที่ส่งเข้า inference" />
+    </dialog>
+
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script>
+      const state = { data: null, page: 1 };
+      const names = { substituted: "คำแทนผิด", missing: "คำหาย", extra: "คำเกิน" };
+      const grid = document.querySelector("#comparison-grid");
+      const select = document.querySelector("#page-select");
+      const tokenDialog = document.querySelector("#token-dialog");
+      const imageDialog = document.querySelector("#image-dialog");
+
+      function escapeHtml(value) {
+        return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+      }
+      function renderIcons() { if (window.lucide) window.lucide.createIcons(); }
+      function currentPage() { return state.data.pages.find((page) => page.page === state.page); }
+      function tokenHtml(token, model) {
+        if (token.kind === "correct") return `${escapeHtml(token.text)} `;
+        return `<button class="token token--${token.kind}" type="button" data-token-kind="${token.kind}" data-token="${escapeHtml(token.text)}" data-expected="${escapeHtml(token.expected || "")}" data-model="${escapeHtml(model.label)}">${escapeHtml(token.text)}</button> `;
+      }
+      function goldenPanel(page) {
+        return `<article class="panel"><header class="panel__head"><div><h2 class="panel__title">Golden dataset</h2><p class="panel__detail">ข้อความอ้างอิง · ${page.goldenWordCount} token</p></div><div class="panel__actions"><button class="icon-button" type="button" data-image-src="${page.originalImage}" data-image-title="ภาพต้นฉบับ · หน้า ${page.page}" data-tooltip="เปิดภาพต้นฉบับ" aria-label="เปิดภาพต้นฉบับ"><i data-lucide="image" aria-hidden="true"></i></button></div></header><div class="transcript transcript--golden">${page.goldenTokens.map((token) => `${escapeHtml(token)} `).join("")}</div></article>`;
+      }
+      function modelPanel(model, result) {
+        const words = model.summary.words;
+        const numbers = model.summary.number_tokens;
+        const delta = result.counts.substituted + result.counts.missing + result.counts.extra;
+        return `<article class="panel"><header class="panel__head"><div><h2 class="panel__title">${escapeHtml(model.label)}</h2><p class="panel__detail">${escapeHtml(model.detail)}</p><p class="panel__score">คำ ${words.accuracy_percent}% · เลข ${numbers.accuracy_percent}%</p><p class="panel__ledger">ผิด / หาย / เกิน: ${words.substituted} / ${words.missing} / ${words.extra}</p></div><div class="panel__actions"><a class="notebook-link" href="${escapeHtml(model.notebook)}" target="_blank" rel="noopener" data-tooltip="เปิด notebook หลักฐาน" aria-label="เปิด notebook หลักฐานของ ${escapeHtml(model.label)}"><i data-lucide="file-text" aria-hidden="true"></i></a><button class="input-thumb" type="button" data-image-src="${result.inputImage}" data-image-title="ภาพ input · ${escapeHtml(model.label)}" data-tooltip="ภาพที่ส่งเข้า inference" aria-label="ภาพที่ส่งเข้า inference ของ ${escapeHtml(model.label)}"><img src="${result.inputImage}" alt="ภาพที่ส่งเข้า inference ของ ${escapeHtml(model.label)}" /></button><span class="delta-badge">${delta}</span></div></header><div class="transcript">${result.tokens.map((token) => tokenHtml(token, model)).join("")}</div></article>`;
+      }
+      function renderSummary() {
+        document.querySelector("#best-summary-body").innerHTML = state.data.models.map((model) => {
+          const words = model.summary.words;
+          const nums = model.summary.number_tokens;
+          return `<tr><td>${escapeHtml(model.label)}</td><td>${escapeHtml(model.input)}</td><td class="numbers">${escapeHtml(model.pixels)}</td><td>${escapeHtml(model.mtp)}</td><td class="numbers">${words.correct.toLocaleString()}</td><td class="numbers">${words.substituted}</td><td class="numbers">${words.missing}</td><td class="numbers">${words.extra}</td><td class="score">${words.accuracy_percent}%</td><td class="score">${nums.accuracy_percent}%</td><td class="numbers">${escapeHtml(model.secondsPerPage)}</td><td class="numbers">${escapeHtml(model.vramPeak)}</td></tr>`;
+        }).join("");
+      }
+      function openImage(button) {
+        document.querySelector("#image-title").textContent = button.dataset.imageTitle;
+        document.querySelector("#full-image").src = button.dataset.imageSrc;
+        imageDialog.showModal();
+      }
+      function openToken(button) {
+        const kind = button.dataset.tokenKind;
+        const missing = kind === "missing";
+        document.querySelector("#token-title").textContent = names[kind];
+        document.querySelector("#token-body").innerHTML = `<div><div class="dialog__label">โมเดล</div><div class="dialog__value">${escapeHtml(button.dataset.model)}</div></div><div><div class="dialog__label">ผล OCR</div><div class="dialog__value">${escapeHtml(missing ? "ไม่พบ token นี้" : button.dataset.token)}</div></div><div><div class="dialog__label">Golden</div><div class="dialog__value">${escapeHtml(button.dataset.expected || "ไม่มี token คู่เทียบ")}</div></div>`;
+        tokenDialog.showModal();
+      }
+      function render() {
+        const page = currentPage();
+        grid.innerHTML = goldenPanel(page) + state.data.models.map((model) => modelPanel(model, page.models[model.id])).join("");
+        select.value = String(page.page);
+        document.querySelector("#previous-button").disabled = page.page === 1;
+        document.querySelector("#next-button").disabled = page.page === state.data.pages.length;
+        const url = new URL(window.location.href); url.searchParams.set("page", page.page); window.history.replaceState({}, "", url);
+        document.querySelectorAll("[data-image-src]").forEach((button) => button.addEventListener("click", () => openImage(button)));
+        document.querySelectorAll("[data-token-kind]").forEach((button) => button.addEventListener("click", () => openToken(button)));
+        renderIcons();
+      }
+      async function initialise() {
+        try {
+          const response = await fetch("/dashboard/data/bot_credit_bureau_best_result_view_20260829.json");
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          state.data = await response.json();
+          const requested = Number(new URLSearchParams(window.location.search).get("page"));
+          state.page = state.data.pages.some((page) => page.page === requested) ? requested : state.data.pages[0].page;
+          select.innerHTML = state.data.pages.map((page) => `<option value="${page.page}">หน้า ${page.page} / ${state.data.pages.length}</option>`).join("");
+          renderSummary();
+          render();
+          document.querySelector("#previous-button").addEventListener("click", () => { state.page = Math.max(1, state.page - 1); render(); });
+          document.querySelector("#next-button").addEventListener("click", () => { state.page = Math.min(state.data.pages.length, state.page + 1); render(); });
+          select.addEventListener("change", () => { state.page = Number(select.value); render(); });
+          document.querySelector("[data-close-token]").addEventListener("click", () => tokenDialog.close());
+          document.querySelector("[data-close-image]").addEventListener("click", () => imageDialog.close());
+        } catch (error) {
+          grid.innerHTML = `<div class="empty">ไม่สามารถโหลดข้อมูล Best Result ได้: ${escapeHtml(error.message)}</div>`;
+        }
+      }
+      initialise();
+    </script>
+  </body>
+</html>
