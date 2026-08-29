@@ -27,6 +27,23 @@ VRAM ราว 91 GiB ในชุดทดสอบนี้ จึงควร
 `temperature=0`, client concurrency 7, vLLM `max-num-seqs=7`, `max_tokens=8192`
 และไม่ใช้ PP-DocLayoutV3, crop หรือ rotate ในรอบนี้.
 
+## เวอร์ชันไลบรารีที่ใช้รัน
+
+บันทึกจาก venv ที่ใช้รันชุด NCB เมื่อ 29 สิงหาคม 2026 เพื่อให้ทำซ้ำผลได้.
+Qwen, Pathumma และ Typhoon แยก process ของ vLLM แต่ใช้ runtime image ชุดเดียวกัน;
+OpenThai ใช้ venv BF16 แยกต่างหาก. ทุกแถวด้านล่างเป็นเวอร์ชันที่ตรวจจาก
+environment จริง ไม่ใช่เวอร์ชันที่คาดเดาจากเอกสารของโมเดล.
+
+| โมเดล | Runtime | Python | vLLM | PyTorch | Transformers | FlashInfer | Tokenizers |
+|---|---|---|---|---|---|---|---|
+| Qwen3.8-27B | shared vLLM | 3.12.3 | 0.27.1 | 2.13.0+cu132 | 5.15.1 | 0.6.16.post3 | 0.22.2 |
+| OpenThai 2.0 | isolated BF16 venv | 3.12.3 | 0.27.1 | 2.13.0+cu132 | 5.15.1 | 0.6.16.post3 | 0.22.2 |
+| Pathumma Vision 3.0 | shared vLLM | 3.12.3 | 0.27.1 | 2.13.0+cu132 | 5.15.1 | 0.6.16.post3 | 0.22.2 |
+| Typhoon OCR 1.5 | shared vLLM | 3.12.3 | 0.27.1 | 2.13.0+cu132 | 5.15.1 | 0.6.16.post3 | 0.22.2 |
+
+`+cu132` หมายถึง PyTorch build สำหรับ CUDA 13.2. ดูขอบเขตการบันทึกและ
+ไลบรารีประกอบได้ที่ [รายงานเวอร์ชัน runtime](results/NCB_RUNTIME_LIBRARY_VERSIONS_2026-08-29.md).
+
 ## ตรวจรายหน้า
 
 [หน้า Best Result แบบ 5 คอลัมน์](dashboard/ncb_best_result_comparison.html) แสดง
